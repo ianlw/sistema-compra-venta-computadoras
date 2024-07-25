@@ -2,7 +2,7 @@
 // login_process.php
 
 session_start();
-include 'db.php';
+include '../db.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['tipo_empleado'] = $tipo_empleado;
 
             // Redirigir al dashboard
-            header("Location: dashboard.php");
+            header("Location: ../dashboard.php");
             exit();
         } else {
             echo "Contraseña incorrecta.";

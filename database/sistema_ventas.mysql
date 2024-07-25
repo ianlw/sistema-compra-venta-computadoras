@@ -2,6 +2,7 @@ USE sistema_compra_venta;
 DROP DATABASE sistema_compra_venta;
 CREATE DATABASE sistema_compra_venta;
 USE sistema_compra_venta;
+SELECT * FROM empleados;
 
 
 -- EMPLEADOS
@@ -29,7 +30,6 @@ CREATE TABLE usuarios(
     password VARCHAR(255) NOT NULL,
     FOREIGN KEY (empleado_id) REFERENCES empleados(id)
 );
-
 
 -- CLIENTES 
 CREATE TABLE clientes(
@@ -76,7 +76,6 @@ CREATE TABLE productos(
     FOREIGN KEY (proveedor_id) REFERENCES proveedores(id)
 );
 
-
 -- ORDEN DE VENTA
 CREATE TABLE orden_venta(
     id VARCHAR(10) PRIMARY KEY,
@@ -86,7 +85,6 @@ CREATE TABLE orden_venta(
         ON DELETE SET NULL
         ON UPDATE CASCADE
 );
-
 
 -- DETALLE DE ORDEN DE VENTA 
 CREATE TABLE detalle_orden(
@@ -98,7 +96,6 @@ CREATE TABLE detalle_orden(
     FOREIGN KEY (id_orden) REFERENCES orden_venta(id),
     FOREIGN KEY (id_producto) REFERENCES productos(id)
 );
-
 
 -- VENTAS
 CREATE TABLE ventas (
@@ -118,6 +115,25 @@ CREATE TABLE detalle_venta (
     cantidad INT NOT NULL,               -- Cantidad vendida
     precio_unitario INT NOT NULL,        -- Precio unitario del producto
     FOREIGN KEY (venta_id) REFERENCES ventas(id),
+    FOREIGN KEY (producto_id) REFERENCES productos(id)
+);
+
+CREATE TABLE compras (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tipo_comprobante ENUM('factura', 'boleta') NOT NULL,
+    nro_comprobante VARCHAR(20) NOT NULL,
+    fecha_emision DATE NOT NULL,
+    proveedor_id INT NOT NULL,
+    FOREIGN KEY (proveedor_id) REFERENCES proveedores(id)
+);
+
+CREATE TABLE detalles_compra (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    compra_id INT NOT NULL,
+    producto_id INT NOT NULL,
+    cantidad INT NOT NULL,
+    precio DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (compra_id) REFERENCES compras(id),
     FOREIGN KEY (producto_id) REFERENCES productos(id)
 );
 
