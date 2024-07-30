@@ -83,7 +83,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <li><a href="../dashboard.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/50">Home</a></li>
                     <li><a href="../ventas/caja.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/50">Caja</a></li>
                     <li><a href="./clientes.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/50">Listar clientes</a></li>
-                        <li><a href="registrar_cliente.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/50">Agregar Cliente</a></li>
                 </ul>
             </nav>
         </div>

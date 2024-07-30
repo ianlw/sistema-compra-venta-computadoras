@@ -115,8 +115,5 @@ $conn->close();
         </section>
     </main>
 
-    <footer class="bg-blue-600 text-white text-center p-4">
-        <p>&copy; 2024 Sistema de Compra y Venta. Todos los derechos reservados.</p>
-    </footer>
 </body>
 </html>
