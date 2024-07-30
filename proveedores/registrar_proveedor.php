@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
 if (empty($_SESSION['user_id'])) {
     header("Location: ../login.html");
@@ -54,49 +57,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Proveedor - Sistema de Compra y Venta</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Enlace a tu archivo CSS si tienes uno -->
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <header>
-        <h1>Registrar Proveedor</h1>
-        <nav>
-            <ul>
-                <li><a href="index.php">Inicio</a></li>
-                <li><a href="login.html">Iniciar Sesión</a></li>
-                <li><a href="proveedores.php">Proveedores</a></li>
-                <li><a href="registrar_proveedor.php">Agregar Proveedor</a></li>
-            </ul>
-        </nav>
+<body class="bg-gray-100">
+
+    <header class="backdrop-blur-sm sticky top-3 left-0 right-0 text-center z-10 bg-slate-900/90 text-white shadow-xl pt-6 pb-6 pr-6 pl-6 mb-3 rounded-xl mt-3 mx-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Registrar Proveedor</h1>
+            <nav>
+                <ul class="flex space-x-4">
+                    <li><a href="../dashboard.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Home</a></li>
+                    <li><a href="proveedores.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Listar Proveedores</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
     
-    <main>
-        <h2>Agregar Nuevo Proveedor</h2>
+    <main class="container mx-auto p-6 bg-white rounded-lg shadow-lg mt-6">
+        <h2 class="text-2xl font-bold mb-4">Agregar Nuevo Proveedor</h2>
         <?php if (isset($error)) : ?>
-            <p style="color: red;"><?php echo htmlspecialchars($error); ?></p>
+            <p class="text-red-600 mb-4"><?php echo htmlspecialchars($error); ?></p>
         <?php endif; ?>
-        <form action="registrar_proveedor.php" method="post">
-            <label for="razon_social">Razón Social:</label>
-            <input type="text" id="razon_social" name="razon_social" required>
-            
-            <label for="ruc">RUC:</label>
-            <input type="text" id="ruc" name="ruc" required>
-            
-            <label for="direccion">Dirección:</label>
-            <input type="text" id="direccion" name="direccion" required>
-            
-            <label for="telefono">Teléfono:</label>
-            <input type="text" id="telefono" name="telefono" required>
-            
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
-            
-            <button type="submit">Registrar Proveedor</button>
+        <form action="registrar_proveedor.php" method="post" class="space-y-4">
+            <div>
+                <label for="razon_social" class="block text-gray-700">Razón Social:</label>
+                <input type="text" id="razon_social" name="razon_social" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+            </div>
+            <div>
+                <label for="ruc" class="block text-gray-700">RUC:</label>
+                <input type="text" id="ruc" name="ruc" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+            </div>
+            <div>
+                <label for="direccion" class="block text-gray-700">Dirección:</label>
+                <input type="text" id="direccion" name="direccion" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+            </div>
+            <div>
+                <label for="telefono" class="block text-gray-700">Teléfono:</label>
+                <input type="text" id="telefono" name="telefono" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+            </div>
+            <div>
+                <label for="email" class="block text-gray-700">Email:</label>
+                <input type="email" id="email" name="email" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+            </div>
+            <button type="submit" class="bg-slate-900 text-white px-4 py-2 rounded-xl hover:bg-slate-900/90">Registrar Proveedor</button>
         </form>
     </main>
-    
-    <footer>
-        <p>&copy; 2024 Sistema de Compra y Venta. Todos los derechos reservados.</p>
-    </footer>
     
     <?php
     // Cerrar la conexión
@@ -104,4 +109,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     ?>
 </body>
 </html>
-

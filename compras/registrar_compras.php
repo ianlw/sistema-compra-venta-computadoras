@@ -1,62 +1,45 @@
 <?php
 session_start();
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-if (empty($_SESSION['user_id'])) {
-    header("Location: ../login.html");
+if (empty($_SESSION['user_id']) || $_SESSION['tipo_empleado'] != 'administrador') {
+    header("Location: login.html");
     exit();
 }
+include '../db.php'; // Incluye la conexión a la base de datos
 
-include '../db.php';
+// Procesar el formulario si se envía
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $tipo_comprobante = $_POST['tipo_comprobante'];
+    $nro_comprobante = $_POST['nro_comprobante'];
+    $fecha_emision = $_POST['fecha_emision'];
+    $proveedor_id = $_POST['proveedor_id'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['tipo_comprobante'], $_POST['nro_comprobante'], $_POST['fecha_emision'], $_POST['proveedor_id'], $_POST['producto_id'], $_POST['cantidad'], $_POST['precio'])) {
-        $tipo_comprobante = $_POST['tipo_comprobante'];
-        $nro_comprobante = $_POST['nro_comprobante'];
-        $fecha_emision = $_POST['fecha_emision'];
-        $proveedor_id = $_POST['proveedor_id'];
-        $producto_ids = $_POST['producto_id'];
-        $cantidades = $_POST['cantidad'];
-        $precios = $_POST['precio'];
+    // Obtener el último ID y generar el siguiente ID
+    $result = $conn->query("SELECT MAX(id) AS max_id FROM compras");
+    $row = $result->fetch_assoc();
+    $last_id = $row['max_id'];
+    $new_id = 'CO' . str_pad((int)substr($last_id, 2) + 1, 3, '0', STR_PAD_LEFT);
 
-        $conn->begin_transaction();
+    // Preparar y ejecutar la consulta de inserción
+    $stmt = $conn->prepare("INSERT INTO compras (id, tipo_comprobante, nro_comprobante, fecha_emision, proveedor_id) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssss", $new_id, $tipo_comprobante, $nro_comprobante, $fecha_emision, $proveedor_id);
 
-        try {
-            // Insertar en la tabla compras
-            $stmt = $conn->prepare("INSERT INTO compras (tipo_comprobante, nro_comprobante, fecha_emision, proveedor_id) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("sssi", $tipo_comprobante, $nro_comprobante, $fecha_emision, $proveedor_id);
-            $stmt->execute();
-            $compra_id = $stmt->insert_id;
-
-            // Insertar en la tabla detalles_compra y actualizar stock de productos
-            $stmt_detalle = $conn->prepare("INSERT INTO detalles_compra (compra_id, producto_id, cantidad, precio) VALUES (?, ?, ?, ?)");
-            $stmt_detalle->bind_param("iiid", $compra_id, $producto_id, $cantidad, $precio);
-
-            $stmt_update_stock = $conn->prepare("UPDATE productos SET stock = stock + ? WHERE id = ?");
-            $stmt_update_stock->bind_param("ii", $cantidad, $producto_id);
-
-            for ($i = 0; $i < count($producto_ids); $i++) {
-                $producto_id = $producto_ids[$i];
-                $cantidad = $cantidades[$i];
-                $precio = $precios[$i];
-
-                $stmt_detalle->execute();
-                $stmt_update_stock->execute();
-            }
-
-            $conn->commit();
-            echo "Compra registrada con éxito.";
-        } catch (Exception $e) {
-            $conn->rollback();
-            echo "Error al registrar la compra: " . $e->getMessage();
-        }
+    if ($stmt->execute()) {
+//        echo "<p>Compra registrada exitosamente.</p>";
     } else {
-        echo "Todos los campos son obligatorios.";
+//        echo "<p>Error al registrar compra: " . $stmt->error . "</p>";
     }
-    exit();
+    $stmt->close();
 }
+
+// Obtener proveedores
+$proveedores = [];
+$result = $conn->query("SELECT id, razon_social FROM proveedores");
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $proveedores[] = $row;
+    }
+}
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -64,80 +47,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar Compra</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Registrar Compra - Sistema de Compra y Venta</title>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <main>
-        <h2>Registrar Compra</h2>
-        <form action="registrar_compras.php" method="post">
-            <label for="tipo_comprobante">Tipo de Comprobante:</label>
-            <input type="text" id="tipo_comprobante" name="tipo_comprobante" required>
-
-            <label for="nro_comprobante">Número de Comprobante:</label>
-            <input type="text" id="nro_comprobante" name="nro_comprobante" required>
-
-            <label for="fecha_emision">Fecha de Emisión:</label>
-            <input type="date" id="fecha_emision" name="fecha_emision" required>
-
-            <label for="proveedor_id">Proveedor:</label>
-            <select id="proveedor_id" name="proveedor_id" required>
-                <?php
-                $result = $conn->query("SELECT id, razon_social FROM proveedores");
-                while ($row = $result->fetch_assoc()) {
-                    echo "<option value='{$row['id']}'>{$row['razon_social']}</option>";
-                }
-                ?>
-            </select>
-
-            <h3>Detalles de la Compra</h3>
-            <div id="detalles">
-                <div class="detalle">
-                    <label for="producto_id[]">Producto:</label>
-                    <select name="producto_id[]" required>
-                        <?php
-                        $result = $conn->query("SELECT id, descripcion FROM productos");
-                        while ($row = $result->fetch_assoc()) {
-                            echo "<option value='{$row['id']}'>{$row['descripcion']}</option>";
-                        }
-                        ?>
-                    </select>
-
-                    <label for="cantidad[]">Cantidad:</label>
-                    <input type="number" name="cantidad[]" required>
-
-                    <label for="precio[]">Precio:</label>
-                    <input type="number" name="precio[]" step="0.01" required>
-                </div>
+<body class="bg-gray-100 text-gray-900">
+    <header class="backdrop-blur-sm sticky top-3 left-0 right-0 text-center z-10 bg-slate-900/90 text-white shadow-xl pt-6 pb-6 pr-6 pl-6 mb-3 rounded-xl mt-3 mx-4">
+        <div class="container mx-auto flex justify-between items-center">
+        <h1 class="text-white text-center text-2xl">Registrar Compra</h1>
+        <nav class="mt-2">
+            <ul class="flex justify-center space-x-4">
+                <li><a href="../dashboard.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/50">Home</a></li>
+                <li><a href="compras.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/50">Listar compras</a></li>
+                <li><a href="../proveedores/proveedores.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/50">Listar proveedores</a></li>
+                <li><a href="productos.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/50">Volver a Productos</a></li>
+            </ul>
+        </nav>
+</div>
+    </header>
+    
+    <main class="container mx-auto p-4">
+        <h2 class="text-xl font-semibold mb-4">Formulario para Registrar Compra</h2>
+        <form method="post" action="" class="bg-white p-6 rounded-lg shadow-md">
+            <div class="mb-4">
+                <label for="tipo_comprobante" class="block text-gray-700 font-medium mb-2">Tipo de Comprobante:</label>
+                <select id="tipo_comprobante" name="tipo_comprobante" required class="px-4 py-2 border rounded-lg w-full">
+                    <option value="factura">Factura</option>
+                    <option value="boleta">Boleta</option>
+                </select>
             </div>
-            <button type="button" onclick="agregarDetalle()">Agregar Detalle</button>
-            <button type="submit">Registrar Compra</button>
+            <div class="mb-4">
+                <label for="nro_comprobante" class="block text-gray-700 font-medium mb-2">Número de Comprobante:</label>
+                <input type="text" id="nro_comprobante" name="nro_comprobante" required class="px-4 py-2 border rounded-lg w-full">
+            </div>
+            <div class="mb-4">
+                <label for="fecha_emision" class="block text-gray-700 font-medium mb-2">Fecha de Emisión:</label>
+                <input type="date" id="fecha_emision" name="fecha_emision" required class="px-4 py-2 border rounded-lg w-full">
+            </div>
+            <div class="mb-4">
+                <label for="proveedor_id" class="block text-gray-700 font-medium mb-2">Proveedor:</label>
+                <select id="proveedor_id" name="proveedor_id" required class="px-4 py-2 border rounded-lg w-full">
+                    <?php foreach ($proveedores as $proveedor): ?>
+                        <option value="<?php echo htmlspecialchars($proveedor['id']); ?>">
+                            <?php echo htmlspecialchars($proveedor['razon_social']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <button type="submit" class="bg-slate-900 m-4 text-white px-4 mb-4 py-2 rounded-xl hover:bg-slate-900/90">Registrar Compra</button>
+            <a href="../productos/agregar_producto.php" class="bg-slate-900 text-white px-4 mb-4 py-2 rounded-xl hover:bg-slate-900/90">Registrar productos</a>
         </form>
     </main>
-    <script>
-        function agregarDetalle() {
-            const detalles = document.getElementById('detalles');
-            const detalle = document.createElement('div');
-            detalle.classList.add('detalle');
-            detalle.innerHTML = `
-                <label for="producto_id[]">Producto:</label>
-                <select name="producto_id[]" required>
-                    <?php
-                    $result = $conn->query("SELECT id, descripcion FROM productos");
-                    while ($row = $result->fetch_assoc()) {
-                        echo "<option value='{$row['id']}'>{$row['descripcion']}</option>";
-                    }
-                    ?>
-                </select>
-
-                <label for="cantidad[]">Cantidad:</label>
-                <input type="number" name="cantidad[]" required>
-
-                <label for="precio[]">Precio:</label>
-                <input type="number" name="precio[]" step="0.01" required>
-            `;
-            detalles.appendChild(detalle);
-        }
-    </script>
 </body>
 </html>
+

@@ -9,10 +9,22 @@ include '../db.php'; // Incluye la conexión a la base de datos
 $user_id = $_SESSION['empleado_id'];
 $tipo_empleado = $_SESSION['tipo_empleado'];
 
-// Consultar los empleados
+// Inicializar la variable de búsqueda
+$search_term = isset($_GET['search']) ? $_GET['search'] : '';
+
+// Consultar los empleados con o sin término de búsqueda
 $query = "SELECT id, nombres, apellidos, sexo, tipo_documento, numero_documento, direccion, telefono, email
-          FROM empleados";
-$result = $conn->query($query);
+          FROM empleados
+          WHERE CONCAT(nombres, ' ', apellidos) LIKE ? OR
+                id LIKE ? OR
+                numero_documento LIKE ?
+          ORDER BY id";
+
+$stmt = $conn->prepare($query);
+$search_term_like = '%' . $search_term . '%';
+$stmt->bind_param("sss", $search_term_like, $search_term_like, $search_term_like);
+$stmt->execute();
+$result = $stmt->get_result();
 
 if (!$result) {
     die("Error en la consulta: " . $conn->error);
@@ -25,19 +37,17 @@ if (!$result) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Empleados - Sistema de Compra y Venta</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
-    <header class="bg-blue-600 p-4">
+    <header class="backdrop-blur-sm sticky top-3 left-0 right-0 text-center z-10 bg-slate-900/90 text-white shadow-xl pt-6 pb-6 pr-6 pl-6 mb-3 rounded-xl mt-3 mx-4">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-white text-2xl">Empleados</h1>
             <nav>
                 <ul class="flex space-x-4">
-                    <li><a href="index.php" class="text-white hover:underline">Inicio</a></li>
-                    <li><a href="login.html" class="text-white hover:underline">Iniciar Sesión</a></li>
-                    <li><a href="empleados.php" class="text-white hover:underline">Empleados</a></li>
+                    <li><a href="../dashboard.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900">Home</a></li>
                     <?php if ($tipo_empleado == 'administrador') : ?>
-                        <li><a href="registrar_empleado.php" class="text-white hover:underline">Agregar Empleado</a></li>
+                        <li><a href="registrar_empleado.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900">Agregar Empleado</a></li>
                     <?php endif; ?>
                 </ul>
             </nav>
@@ -46,6 +56,16 @@ if (!$result) {
     
     <main class="container mx-auto p-4">
         <h2 class="text-xl font-semibold mb-4">Lista de Empleados</h2>
+
+<div class="flex justify-center">
+        <form method="GET" action="empleados.php" class="mb-4">
+            <div class="flex items-center">
+                <input type="text" name="search" value="<?php echo htmlspecialchars($search_term); ?>" placeholder="Buscar empleados" class="w-80 px-3 py-2 border border-gray-300 rounded-xl" />
+                <button type="submit" class="ml-4 bg-slate-900 text-white px-4 py-2 rounded-xl hover:bg-slate-900/90">Buscar</button>
+            </div>
+        </form>
+</div>
+
         <div class="overflow-x-auto">
             <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
                 <thead class="bg-gray-200">
@@ -80,8 +100,8 @@ if (!$result) {
         </div>
     </main>
     
-    <footer class="bg-blue-600 text-white text-center p-4 mt-6">
-        <p>&copy; 2024 Sistema de Compra y Venta. Todos los derechos reservados.</p>
+    <footer class="text-slate-700 p-4 text-center">
+        <p> No existen más empleados</p>
     </footer>
     
     <?php

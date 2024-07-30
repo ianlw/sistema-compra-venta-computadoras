@@ -1,6 +1,14 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 session_start();
-include 'db.php';
+include '../db.php';
+
+// Inicializar variables de sesión para errores
+$_SESSION['error_current_password'] = '';
+$_SESSION['error_new_password'] = '';
+$_SESSION['success_message'] = '';
+$_SESSION['error_message'] = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_id = $_SESSION['user_id']; // ID del usuario actual
@@ -10,7 +18,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Verificar que las contraseñas nuevas coinciden
     if ($new_password !== $confirm_new_password) {
-        die("Las nuevas contraseñas no coinciden.");
+        $_SESSION['error_new_password'] = "Las nuevas contraseñas no coinciden.";
+        header("Location: form_change_password.php");
+        exit();
     }
 
     // Consultar la contraseña actual del usuario
@@ -18,12 +28,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $stmt->store_result();
+
+    // Si no se encontró el usuario o no tiene contraseña
+    if ($stmt->num_rows == 0) {
+        $_SESSION['error_message'] = "No se pudo encontrar el usuario.";
+        header("Location: form_change_password.php");
+        exit();
+    }
+
     $stmt->bind_result($hashed_password);
     $stmt->fetch();
 
     // Verificar la contraseña actual
     if (!password_verify($current_password, $hashed_password)) {
-        die("La contraseña actual es incorrecta.");
+        $_SESSION['error_current_password'] = "La contraseña actual es incorrecta.";
+        header("Location: form_change_password.php");
+        exit();
     }
 
     // Encriptar la nueva contraseña
@@ -34,13 +54,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bind_param("si", $new_hashed_password, $user_id);
 
     if ($stmt->execute()) {
-        echo "Contraseña cambiada exitosamente.";
+        $_SESSION['success_message'] = "Contraseña cambiada exitosamente.";
     } else {
-        echo "Error al cambiar la contraseña: " . $stmt->error;
+        $_SESSION['error_message'] = "Error al cambiar la contraseña: " . $stmt->error;
     }
 
     $stmt->close();
     $conn->close();
+
+    header("Location: form_change_password.php");
+    exit();
 }
 ?>
-

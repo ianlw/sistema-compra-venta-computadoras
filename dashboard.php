@@ -31,39 +31,41 @@ $picture = "./img/empleados/" . $foto;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Sistema de Compra y Venta</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"> -->
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 text-gray-900 min-h-screen flex flex-col">
-    <header class="bg-blue-600 p-4 text-white">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl">Bienvenido, <?php echo htmlspecialchars($nombres . ' ' . $apellidos); ?></h1>
+<body class="bg-gray text-gray-900 min-h-screen flex flex-col">
+    <header class="sticky top-0 left-0 right-0 text-center z-10 bg-slate-900/90 text-white shadow-xl pt-3 pb-3 pr-6 pl-6 mb-3 rounded-xl mt-3 mx-4">
+        <div class="container mx-auto flex justify-between items-center text-center place-content-cente">
+            <h1 class="text-white font-bold text-center text-2xl ">Bienvenido, <?php echo htmlspecialchars($nombres . ' ' . $apellidos); ?></h1>
+    
+    <nav class="p-4 text-white">
+        <ul class="container mx-auto flex">
+            <?php if ($tipo_empleado == 'vendedor') : ?>
+                <!-- <li><a href="./ventas/caja.php" class="hover:underline">Gestionar Ordenes de Ventas</a></li> -->
+                <li><a href="productos/productos.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/50">Ver Productos</a></li>
+            <?php elseif ($tipo_empleado == 'cajero') : ?>
+                <li><a href="./ventas/caja.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/50">Caja</a></li>
+                <li><a href="./clientes/clientes.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/50">Gestionar Clientes</a></li>
+                <li><a href="ventas/ventas.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/50">Gestionar Ventas</a></li>
+            <?php elseif ($tipo_empleado == 'administrador') : ?>
+                <li><a href="./clientes/clientes.php" class="flex rounded-full py-2 px-4 hover:bg-slate-900/50">Gestionar Clientes</a></li>
+                <li><a href="empleados/empleados.php" class="flex rounded-full py-2 px-4 hover:bg-slate-900/50">Gestionar Empleados</a></li>
+                <li><a href="compras/compras.php" class="flex rounded-full py-2 px-4 hover:bg-slate-900/50">Gestionar Compras</a></li>
+                <li><a href="proveedores/proveedores.php" class="flex rounded-full py-2 px-4 hover:bg-slate-900/50">Gestionar Proveedores</a></li>
+                <li><a href="productos/productos.php" class="flex rounded-full py-2 px-4 hover:bg-slate-900/50">Gestionar Productos</a></li>
+                <li><a href="ventas/ventas.php" class="flex rounded-full py-2 px-4 hover:bg-slate-900/50">Gestionar Ventas</a></li>
+                <li><a href="./reportes/producto_diario.php" class="flex rounded-full py-2 px-4 hover:bg-slate-900/50">Ver Reportes</a></li>
+            <?php endif; ?>
+            <li><a href="./user/form_change_password.php" class="flex rounded-full py-2 px-4 hover:bg-slate-900/50">Cambiar Contraseña</a></li>
+            <li><a href="./login/logout.php" class="flex rounded-full py-2 px-4 hover:bg-slate-900/50">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
         </div>
     </header>
     
-    <nav class="bg-blue-500 p-4 text-white">
-        <ul class="container mx-auto flex space-x-4">
-            <?php if ($tipo_empleado == 'vendedor') : ?>
-                <li><a href="ventas.php" class="hover:underline">Gestionar Ventas</a></li>
-                <li><a href="productos/productos.php" class="hover:underline">Ver Productos</a></li>
-            <?php elseif ($tipo_empleado == 'cajero') : ?>
-                <li><a href="caja.php" class="hover:underline">Caja</a></li>
-                <li><a href="./clientes/clientes.php" class="hover:underline">Gestionar Clientes</a></li>
-                <li><a href="reportes.php" class="hover:underline">Ver Reportes</a></li>
-            <?php elseif ($tipo_empleado == 'administrador') : ?>
-                <li><a href="./clientes/clientes.php" class="hover:underline">Gestionar Clientes</a></li>
-                <li><a href="empleados/empleados.php" class="hover:underline">Gestionar Empleados</a></li>
-                <li><a href="compras/compras.php" class="hover:underline">Gestionar Compras</a></li>
-                <li><a href="proveedores/proveedores.php" class="hover:underline">Gestionar Proveedores</a></li>
-                <li><a href="productos/productos.php" class="hover:underline">Gestionar Productos</a></li>
-                <li><a href="reportes.php" class="hover:underline">Ver Reportes</a></li>
-            <?php endif; ?>
-            <li><a href="./user/change_password.html" class="hover:underline">Cambiar Contraseña</a></li>
-            <li><a href="logout.php" class="hover:underline">Cerrar Sesión</a></li>
-        </ul>
-    </nav>
-    
     <main class="container mx-auto p-4 flex-grow">
-        <section class="bg-white p-6 rounded-lg shadow-md">
+        <section class="bg-white p-6 rounded-xl shadow-lg">
             <h2 class="text-xl font-semibold mb-4">Información del Empleado</h2>
             <div class="grid grid-cols-2 gap-4">
                 <p><strong>ID:</strong> <?php echo htmlspecialchars($id); ?></p>
@@ -85,26 +87,25 @@ $picture = "./img/empleados/" . $foto;
             <?php endif; ?>
         </section>
 
-        <?php if ($tipo_empleado == 'vendedor') : ?>
-            <section class="bg-white p-6 rounded-lg shadow-md mt-6">
-                <h2 class="text-xl font-semibold mb-4">Panel de Vendedor</h2>
-                <p>Contenido exclusivo para vendedores.</p>
-            </section>
-        <?php elseif ($tipo_empleado == 'cajero') : ?>
-            <section class="bg-white p-6 rounded-lg shadow-md mt-6">
-                <h2 class="text-xl font-semibold mb-4">Panel de Cajero</h2>
-                <p>Contenido exclusivo para cajeros.</p>
-            </section>
-        <?php elseif ($tipo_empleado == 'administrador') : ?>
-            <section class="bg-white p-6 rounded-lg shadow-md mt-6">
-                <h2 class="text-xl font-semibold mb-4">Panel de Administrador</h2>
-                <p>Contenido exclusivo para administradores.</p>
-            </section>
-        <?php endif; ?>
+        <!--
+         * <?php if ($tipo_empleado == 'vendedor') : ?>
+         *     <section class="bg-white p-6 rounded-lg shadow-md mt-6">
+         *         <h2 class="text-xl font-semibold mb-4">Panel de Vendedor</h2>
+         *         <p>Contenido exclusivo para vendedores.</p>
+         *     </section>
+         * <?php elseif ($tipo_empleado == 'cajero') : ?>
+         *     <section class="bg-white p-6 rounded-lg shadow-md mt-6">
+         *         <h2 class="text-xl font-semibold mb-4">Panel de Cajero</h2>
+         *         <p>Contenido exclusivo para cajeros.</p>
+         *     </section>
+         * <?php elseif ($tipo_empleado == 'administrador') : ?>
+         *     <section class="bg-white p-6 rounded-lg shadow-md mt-6">
+         *         <h2 class="text-xl font-semibold mb-4">Panel de Administrador</h2>
+         *         <p>Contenido exclusivo para administradores.</p>
+         *     </section>
+         * <?php endif; ?>
+        -->
+  
     </main>
-    
-    <footer class="bg-blue-600 text-white text-center p-4">
-        <p>&copy; 2024 Sistema de Compra y Venta. Todos los derechos reservados.</p>
-    </footer>
 </body>
 </html>

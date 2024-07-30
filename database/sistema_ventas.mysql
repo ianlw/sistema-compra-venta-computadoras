@@ -1,8 +1,8 @@
 USE sistema_compra_venta;
 DROP DATABASE sistema_compra_venta;
+
 CREATE DATABASE sistema_compra_venta;
 USE sistema_compra_venta;
-SELECT * FROM empleados;
 
 
 -- EMPLEADOS
@@ -30,6 +30,7 @@ CREATE TABLE usuarios(
     password VARCHAR(255) NOT NULL,
     FOREIGN KEY (empleado_id) REFERENCES empleados(id)
 );
+
 
 -- CLIENTES 
 CREATE TABLE clientes(
@@ -61,10 +62,23 @@ CREATE TABLE categorias (
     nombre_categoria VARCHAR(50) NOT NULL,
     descripcion TEXT
 );
+
+CREATE TABLE compras (
+    id VARCHAR(10) PRIMARY KEY,
+    tipo_comprobante ENUM('factura', 'boleta') NOT NULL,
+    nro_comprobante VARCHAR(20) NOT NULL,
+    fecha_emision DATE NOT NULL,
+    proveedor_id VARCHAR(10) NOT NULL,
+    FOREIGN KEY (proveedor_id) REFERENCES proveedores(id)
+);
+
+
+
 -- PRODUCTOS
 CREATE TABLE productos(
     id VARCHAR(10) PRIMARY KEY,
     descripcion VARCHAR(1000) NOT NULL,
+    foto VARCHAR(255) NOT NULL,
     marca VARCHAR(20) NOT NULL, 
     modelo VARCHAR(20) NOT NULL, 
     stock_inicial INT NOT NULL,
@@ -72,9 +86,12 @@ CREATE TABLE productos(
     categoria_id VARCHAR(10),
     proveedor_id VARCHAR(10),
     precio INT NOT NULL,
+    compra_id VARCHAR(10),
     FOREIGN KEY (categoria_id) REFERENCES categorias(id),
-    FOREIGN KEY (proveedor_id) REFERENCES proveedores(id)
+    FOREIGN KEY (proveedor_id) REFERENCES proveedores(id),
+    FOREIGN KEY (compra_id) REFERENCES compras(id)
 );
+
 
 -- ORDEN DE VENTA
 CREATE TABLE orden_venta(
@@ -85,6 +102,7 @@ CREATE TABLE orden_venta(
         ON DELETE SET NULL
         ON UPDATE CASCADE
 );
+
 
 -- DETALLE DE ORDEN DE VENTA 
 CREATE TABLE detalle_orden(
@@ -97,6 +115,7 @@ CREATE TABLE detalle_orden(
     FOREIGN KEY (id_producto) REFERENCES productos(id)
 );
 
+
 -- VENTAS
 CREATE TABLE ventas (
     id VARCHAR(10) PRIMARY KEY,           -- Identificador único de la venta
@@ -104,7 +123,9 @@ CREATE TABLE ventas (
     nro_comprobante VARCHAR(20) NOT NULL, -- Número de comprobante
     fecha_emision DATE NOT NULL,          -- Fecha de emisión
     proveedor_id VARCHAR(10),             -- Proveedor asociado a la venta
-    FOREIGN KEY (proveedor_id) REFERENCES proveedores(id)
+    cliente_id VARCHAR(10),
+    FOREIGN KEY (proveedor_id) REFERENCES proveedores(id),
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 );
 
 
@@ -118,31 +139,12 @@ CREATE TABLE detalle_venta (
     FOREIGN KEY (producto_id) REFERENCES productos(id)
 );
 
-CREATE TABLE compras (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    tipo_comprobante ENUM('factura', 'boleta') NOT NULL,
-    nro_comprobante VARCHAR(20) NOT NULL,
-    fecha_emision DATE NOT NULL,
-    proveedor_id INT NOT NULL,
-    FOREIGN KEY (proveedor_id) REFERENCES proveedores(id)
-);
-
-CREATE TABLE detalles_compra (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    compra_id INT NOT NULL,
-    producto_id INT NOT NULL,
-    cantidad INT NOT NULL,
-    precio DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (compra_id) REFERENCES compras(id),
-    FOREIGN KEY (producto_id) REFERENCES productos(id)
-);
-
 USE sistema_compra_venta;
 INSERT INTO empleados (id, nombres, apellidos, sexo, fecha_nacimiento, tipo_documento, numero_documento, foto, direccion, telefono, email, estado, tipo)
 VALUES
-    ('E001', 'Juan', 'Pérez', 'masculino', '1985-03-15', 'DNI', '12345678', 'juan_perez.jpg', 'Av. Principal 123', '987654321', 'juan.perez@example.com', 'activo', 'vendedor'),
-    ('E002', 'Ana', 'López', 'femenino', '1990-07-22', 'CE', '87654321', 'ana_lopez.jpg', 'Calle Secundaria 456', '912345678', 'ana.lopez@example.com', 'activo', 'cajero'),
-    ('E003', 'Carlos', 'Martínez', 'masculino', '1982-11-30', 'pasaporte', 'A1234567', 'carlos_martinez.jpg', 'Av. Libertad 789', '987654321', 'carlos.martinez@example.com', 'no activo', 'administrador'),
+    ('E001', 'Juan', 'Pérez', 'masculino', '1985-03-15', 'DNI', '12345678', 'juan_perez.png', 'Av. Principal 123', '987654321', 'juan.perez@example.com', 'activo', 'vendedor'),
+    ('E002', 'Ana', 'López', 'femenino', '1990-07-22', 'CE', '87654321', 'ana_lopez.png', 'Calle Secundaria 456', '912345678', 'ana.lopez@example.com', 'activo', 'cajero'),
+    ('E003', 'Carlos', 'Martínez', 'masculino', '1982-11-30', 'pasaporte', 'A1234567', 'carlos_martinez.png', 'Av. Libertad 789', '987654321', 'carlos.martinez@example.com', 'no activo', 'administrador'),
     ('E004', 'Laura', 'Gómez', 'femenino', '1995-02-10', 'DNI', '23456789', 'laura_gomez.jpg', 'Calle Tercera 101', '923456789', 'laura.gomez@example.com', 'activo', 'vendedor'),
     ('E005', 'Jorge', 'Ramírez', 'masculino', '1988-06-25', 'CE', '34567890', 'jorge_ramirez.jpg', 'Av. Norte 202', '934567890', 'jorge.ramirez@example.com', 'activo', 'cajero');
 
@@ -164,18 +166,26 @@ VALUES
 
 INSERT INTO categorias (id, nombre_categoria, descripcion)
 VALUES
-    ('CA001', 'Electrónica', 'Productos electrónicos como computadoras, teléfonos y accesorios.'),
-    ('CA002', 'Electrodomésticos', 'Electrodomésticos para el hogar, como neveras y lavadoras.'),
-    ('CA003', 'Muebles', 'Muebles para el hogar y oficina, incluyendo sillas, mesas y sofás.');
+    ('CA001', 'Laptop', 'Productos electrónicos como computadoras, teléfonos y accesorios.'),
+    ('CA002', 'Smartphone', 'Electrodomésticos para el hogar, como neveras y lavadoras.'),
+    ('CA003', 'Impresora', 'Muebles para el hogar y oficina, incluyendo sillas, mesas y sofás.'),
+    ('CA004', 'Pantalla', 'Muebles para el hogar y oficina, incluyendo sillas, mesas y sofás.');
 
--- Insertar cinco productos en la tabla productos
-INSERT INTO productos (id, descripcion, marca, modelo, stock_inicial, stock_actual, categoria_id, proveedor_id, precio)
+INSERT INTO compras (id, tipo_comprobante, nro_comprobante, fecha_emision, proveedor_id)
 VALUES
-    ('P001', 'Laptop', 'Dell', 'Inspiron 15', 50, 50, 'CA001', 'PR001', 700),
-    ('P002', 'Smartphone', 'Samsung', 'Galaxy S21', 100, 100, 'CA002', 'PR001', 900),
-    ('P003', 'Tablet', 'Apple', 'iPad Pro', 30, 30, 'CA003', 'PR002', 800),
-    ('P004', 'Monitor', 'LG', 'UltraWide', 40, 40, 'CA001', 'PR002', 300),
-    ('P005', 'Impresora', 'HP', 'LaserJet', 20, 20, 'CA002', 'PR003', 200);
+    ('CO001', 'factura', 'F001', '2024-07-15', 'PR001'),
+    ('CO002', 'boleta', 'B001', '2024-07-16', 'PR002'),
+    ('CO003', 'factura', 'F002', '2024-07-17', 'PR003'),
+    ('CO004', 'factura', 'F003', '2024-07-17', 'PR003');
+-- Insertar cinco productos en la tabla productos
+INSERT INTO productos (id, descripcion, foto, marca, modelo, stock_inicial, stock_actual, categoria_id, proveedor_id, precio, compra_id)
+VALUES
+    ('P001', 'Monitor Dell', 'default.png','Dell', 'Inspiron 15', 50, 50, 'CA004', 'PR001', 700, "CO001"),
+    ('P002', 'Celular Huawei Pura 70 Pro','default.png', 'Huawei', 'Pura 70 pro', 100, 100, 'CA002', 'PR001', 900, "CO002"),
+    ('P003', 'Canon Maprix 41100','default.png', 'Apple', 'iPad Pro', 30, 30, 'CA003', 'PR002', 800, "CO002"),
+    ('P004', 'Monitor LG','default.png', 'LG', 'UltraWide', 40, 40, 'CA001', 'PR002', 300, "CO003"),
+    ('P005', 'Impresora de tinta','default.png', 'HP', 'Maprix 51010', 20, 20, 'CA003', 'PR003', 200, "CO001"),
+    ('P006', 'Impresora Laser','default.png', 'HP', 'LaserJet', 20, 20, 'CA002', 'PR003', 200, "CO004");
 
 -- Insertar tres ordenes de venta en la tabla orden_venta
 INSERT INTO orden_venta (id, empleado_id, fecha)
@@ -194,10 +204,13 @@ VALUES
     ('DO005', 'OV003', 'P005', 1, 200);
 
 -- INSERTAR
-INSERT INTO ventas (id, tipo_comprobante, nro_comprobante, fecha_emision, proveedor_id)
-VALUES ('V001', 'factura', 'F123456', '2024-07-20', 'PR001');
+INSERT INTO ventas (id, tipo_comprobante, nro_comprobante, fecha_emision, proveedor_id, cliente_id)
+VALUES ('V001', 'factura', '001', '2024-07-20', 'PR001', 'C001');
 
 INSERT INTO detalle_venta (id, venta_id, producto_id, cantidad, precio_unitario)
 VALUES
     ('DV001', 'V001', 'P001', 2, 700),
     ('DV002', 'V001', 'P002', 1, 900);
+
+
+
