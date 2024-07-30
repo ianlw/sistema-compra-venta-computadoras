@@ -1,3 +1,5 @@
+***Desarrollo de Software-I***
+*Ian Logan Will Quispe Ventura*
 * Generales
   - Inicio de sesion
   - Cambio de contraseña
