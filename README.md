@@ -1,5 +1,8 @@
 ***Desarrollo de Software-I***
 *Ian Logan Will Quispe Ventura*
+
+****Importante****
+Modificar los parámetros del archivo db.php deacuerdo a su configuración 
 * Generales
   - Inicio de sesion
   - Cambio de contraseña
