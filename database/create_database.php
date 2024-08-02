@@ -1,10 +1,29 @@
-USE sistema_compra_venta;
-DROP DATABASE sistema_compra_venta;
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
 
-CREATE DATABASE sistema_compra_venta;
-USE sistema_compra_venta;
+// Crear conexión
+$conn = new mysqli($servername, $username, $password);
 
+// Verificar conexión
+if ($conn->connect_error) {
+    die("Conexión fallida: " . $conn->connect_error);
+}
 
+// Crear base de datos
+$sql = "CREATE DATABASE IF NOT EXISTS sistema_compra_venta";
+if ($conn->query($sql) === TRUE) {
+    echo "Base de datos creada exitosamente<br>";
+} else {
+    echo "Error al crear la base de datos: " . $conn->error . "<br>";
+}
+
+// Seleccionar base de datos
+$conn->select_db("sistema_compra_venta");
+
+// SQL para crear tablas
+$sql = <<<SQL
 -- EMPLEADOS
 CREATE TABLE empleados(
     id VARCHAR(10) PRIMARY KEY,
@@ -128,6 +147,7 @@ CREATE TABLE ventas (
     FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 );
 
+
 CREATE TABLE detalle_venta (
     id VARCHAR(10) PRIMARY KEY,          -- Identificador único del detalle
     venta_id VARCHAR(10),                -- Identificador de la venta
@@ -137,8 +157,16 @@ CREATE TABLE detalle_venta (
     FOREIGN KEY (venta_id) REFERENCES ventas(id),
     FOREIGN KEY (producto_id) REFERENCES productos(id)
 );
+SQL;
 
-USE sistema_compra_venta;
+if ($conn->multi_query($sql) === TRUE) {
+    echo "Tablas creadas exitosamente<br>";
+} else {
+    echo "Error al crear las tablas: " . $conn->error . "<br>";
+}
+
+// Insertar datos iniciales
+$sql = <<<SQL
 INSERT INTO empleados (id, nombres, apellidos, sexo, fecha_nacimiento, tipo_documento, numero_documento, foto, direccion, telefono, email, estado, tipo)
 VALUES
     ('E001', 'Juan', 'Pérez', 'masculino', '1985-03-15', 'DNI', '12345678', 'juan_perez.png', 'Av. Principal 123', '987654321', 'juan.perez@example.com', 'activo', 'vendedor'),
@@ -211,5 +239,13 @@ VALUES
     ('DV001', 'V001', 'P001', 2, 700),
     ('DV002', 'V001', 'P002', 1, 900);
 
+SQL;
 
+if ($conn->multi_query($sql) === TRUE) {
+    echo "Datos iniciales insertados exitosamente<br>";
+} else {
+    echo "Error al insertar los datos: " . $conn->error . "<br>";
+}
 
+$conn->close();
+?>
