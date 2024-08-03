@@ -4,29 +4,24 @@ $username = "root";
 $password = "wilf18dora";
 $db = 'sistema_compra_venta';
 
-// Create connection
 $conn = new mysqli($servername, $username, $password);
 
-// Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Check if the database already exists
+// Verificar si ya existe la base de datos 
 $db_check = $conn->query("SHOW DATABASES LIKE '$db'");
 if ($db_check->num_rows == 0) {
-    // Create database if it does not exist
     $sql = "CREATE DATABASE IF NOT EXISTS sistema_compra_venta";
     if ($conn->query($sql) === TRUE) {
-        echo "Database created successfully<br>";
+        //echo "Database creado";
     } else {
-        echo "Error creating database: " . $conn->error . "<br>";
+        //echo "Error database: " . $conn->error . "<br>";
     }
 
-    // Select the database
     $conn->select_db("sistema_compra_venta");
 
-    // SQL to create tables
     $sql = <<<SQL
     -- EMPLEADOS
     CREATE TABLE empleados(
@@ -159,7 +154,7 @@ if ($db_check->num_rows == 0) {
     SQL;
 
     if ($conn->multi_query($sql) === TRUE) {
-        echo "Tables created successfully<br>";
+        //echo "Tables created successfully<br>";
 
         // Ensure all results are processed
         while ($conn->next_result()) {
@@ -168,7 +163,7 @@ if ($db_check->num_rows == 0) {
             }
         }
     } else {
-        echo "Error creating tables: " . $conn->error . "<br>";
+        //echo "Error creating tables: " . $conn->error . "<br>";
     }
 
     // Insert initial data
@@ -247,7 +242,7 @@ if ($db_check->num_rows == 0) {
     SQL;
 
     if ($conn->multi_query($sql) === TRUE) {
-        echo "Initial data inserted successfully<br>";
+        //echo "Initial data inserted successfully<br>";
 
         // Ensure all results are processed
         while ($conn->next_result()) {
@@ -256,10 +251,10 @@ if ($db_check->num_rows == 0) {
             }
         }
     } else {
-        echo "Error inserting initial data: " . $conn->error . "<br>";
+        //echo "Error inserting initial data: " . $conn->error . "<br>";
     }
 } else {
-    echo "Database already exists.<br>";
+    //echo "Database already exists.<br>";
 }
 
 // Close connection
