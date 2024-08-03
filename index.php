@@ -1,10 +1,13 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-// Incluir el archivo de configuración para obtener BASE_PATH
+// Archivo de configuración de BASE_PATH
 include __DIR__ . '/config.php';
 
-// Incluir el archivo add_user.php usando una ruta absoluta
+// Crear la base de datos 
+include BASE_PATH . '/database/create_database.php';
+
+// Añadir usuarios automáticamente 
 include BASE_PATH . '/user/add_user.php';
 ?>
 <!DOCTYPE html>
