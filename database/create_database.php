@@ -1,7 +1,7 @@
 <?php
-$servername = "127.0.0.1";
+$servername = "localhost";
 $username = "root";
-$password = "wilf18dora";
+$password = "";
 $db = 'sistema_compra_venta';
 
 $conn = new mysqli($servername, $username, $password);
