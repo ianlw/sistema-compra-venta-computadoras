@@ -4,7 +4,7 @@ if (empty($_SESSION['user_id'])) {
     header("Location: ../login.html");
     exit();
 }
-include '../db.php'; // Incluye la conexión a la base de datos
+include '../db.php';  
 
 // Inicializar variables
 $search_query = '';
