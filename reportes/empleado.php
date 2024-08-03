@@ -10,6 +10,7 @@ include '../db.php'; // Incluye la conexión a la base de datos
 $search_query = '';
 $empleado_info = null;
 $empleados = [];
+$reporte_empleado_result = null; // Inicializa la variable
 
 // Manejo del formulario de búsqueda
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['search'])) {
@@ -73,24 +74,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['search'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte de Empleados - Sistema de Compra y Venta</title>
-<script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
     <header class="backdrop-blur-sm sticky top-3 left-0 right-0 text-center z-10 bg-slate-900/90 text-white shadow-xl pt-6 pb-6 pr-6 pl-6 mb-3 rounded-xl mt-3 mx-4">
         <div class="container mx-auto flex justify-between items-center">
-        <h1 class="text-2xl">Reportes</h1>
-        <nav>
-            <ul class="flex space-x-4">
-                <li><a href="../dashboard.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Home</a></li>
-                <li><a href="producto_diario.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Producto Kardex</a></li>
-                <li><a href="producto_dos_fechas.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Producto entre fechas</a></li>
-                <li><a href="empleado.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Empleados</a></li>
-                <li><a href="productos.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Productos</a></li>
-                <li><a href="ventas_diarias.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Ventas diarias</a></li>
-                <li><a href="ventas_dos_fechas.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Ventas entre fechas</a></li>
-                <li><a href="compra_dos_fechas.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Compra entre fechas</a></li>
-            </ul>
-        </nav>
+            <h1 class="text-2xl">Reportes</h1>
+            <nav>
+                <ul class="flex space-x-4">
+                    <li><a href="../dashboard.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Home</a></li>
+                    <li><a href="producto_diario.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Producto Kardex</a></li>
+                    <li><a href="producto_dos_fechas.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Producto entre fechas</a></li>
+                    <li><a href="empleado.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Empleados</a></li>
+                    <li><a href="productos.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Productos</a></li>
+                    <li><a href="ventas_diarias.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Ventas diarias</a></li>
+                    <li><a href="ventas_dos_fechas.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Ventas entre fechas</a></li>
+                    <li><a href="compra_dos_fechas.php" class="flex rounded-full py-2 px-5 hover:bg-slate-900/70">Compra entre fechas</a></li>
+                </ul>
+            </nav>
         </div>
     </header>
     
@@ -98,11 +99,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['search'])) {
         <h2 class="text-xl font-bold mb-4">Buscar Empleado</h2>
         
         <!-- Formulario de búsqueda -->
-<div class="flex justify-center">
-        <form method="POST" action="" class="mb-6">
-            <input type="text" name="search_query" value="<?php echo htmlspecialchars($search_query); ?>" placeholder="Buscar por nombre, apellido o sexo" class="w-80 px-3 py-2 border border-gray-300 rounded-xl">
-            <button type="submit" name="search" class="bg-slate-900 text-white px-4 py-2 rounded-xl mt-3 hover:bg-slate-900/90">Buscar</button>
-        </form>
+        <div class="flex justify-center">
+            <form method="POST" action="" class="mb-6">
+                <input type="text" name="search_query" value="<?php echo htmlspecialchars($search_query); ?>" placeholder="Buscar por nombre, apellido o sexo" class="w-80 px-3 py-2 border border-gray-300 rounded-xl">
+                <button type="submit" name="search" class="bg-slate-900 text-white px-4 py-2 rounded-xl mt-3 hover:bg-slate-900/90">Buscar</button>
+            </form>
         </div>
 
         <!-- Mostrar todos los empleados si no se ha realizado una búsqueda -->
@@ -151,17 +152,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['search'])) {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while ($row = $reporte_empleado_result->fetch_assoc()) : ?>
+                        <?php if ($reporte_empleado_result->num_rows > 0): ?>
+                            <?php while ($row = $reporte_empleado_result->fetch_assoc()): ?>
+                                <tr>
+                                    <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Orden ID']); ?></td>
+                                    <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Fecha de Orden']); ?></td>
+                                    <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Producto ID']); ?></td>
+                                    <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Descripción del Producto']); ?></td>
+                                    <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Cantidad']); ?></td>
+                                    <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Precio Unitario']); ?></td>
+                                    <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Total por Producto']); ?></td>
+                                </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
                             <tr>
-                                <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Orden ID']); ?></td>
-                                <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Fecha de Orden']); ?></td>
-                                <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Producto ID']); ?></td>
-                                <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Descripción del Producto']); ?></td>
-                                <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Cantidad']); ?></td>
-                                <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Precio Unitario']); ?></td>
-                                <td class="border border-gray-300 px-4 py-2"><?php echo htmlspecialchars($row['Total por Producto']); ?></td>
+                                <td colspan="7" class="border border-gray-300 px-4 py-2 text-center">No se encontraron resultados</td>
                             </tr>
-                        <?php endwhile; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
