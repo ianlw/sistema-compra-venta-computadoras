@@ -2,7 +2,7 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-
+$db = 'sistema_compra_venta';
 // Crear conexión
 $conn = new mysqli($servername, $username, $password);
 
@@ -11,153 +11,157 @@ if ($conn->connect_error) {
     die("Conexión fallida: " . $conn->connect_error);
 }
 
-// Crear base de datos
-$sql = "CREATE DATABASE IF NOT EXISTS sistema_compra_venta";
-if ($conn->query($sql) === TRUE) {
-    echo "Base de datos creada exitosamente<br>";
-} else {
-    echo "Error al crear la base de datos: " . $conn->error . "<br>";
-}
+// Verificar si la base de datos ya existe
+$db_check = $conn->query("SHOW DATABASES LIKE '$db'");
+if ($db_check->num_rows == 0) {
+    // Si la base de datos no existe, crearla
+    // Crear base de datos
+    $sql = "CREATE DATABASE IF NOT EXISTS sistema_compra_venta";
+    if ($conn->query($sql) === TRUE) {
+        echo "Base de datos creada exitosamente<br>";
+    } else {
+        echo "Error al crear la base de datos: " . $conn->error . "<br>";
+    }
 
-// Seleccionar base de datos
-$conn->select_db("sistema_compra_venta");
+    // Seleccionar base de datos
+    $conn->select_db("sistema_compra_venta");
 
-// SQL para crear tablas
-$sql = <<<SQL
--- EMPLEADOS
-CREATE TABLE empleados(
-    id VARCHAR(10) PRIMARY KEY,
-    nombres VARCHAR(50) NOT NULL,
-    apellidos VARCHAR(50) NOT NULL,
-    sexo ENUM('masculino', 'femenino') NOT NULL,
-    fecha_nacimiento DATE,
-    tipo_documento ENUM('DNI', 'CE', 'pasaporte'),
-    numero_documento VARCHAR(20) NOT NULL,
-    foto VARCHAR(255) NOT NULL,
-    direccion VARCHAR(50) NOT NULL,
-    telefono VARCHAR(9) CHECK (telefono REGEXP '^[0-9]{9}$'),
-    email VARCHAR(100) UNIQUE NOT NULL,
-    estado ENUM('activo', 'no activo') NOT NULL,
-    tipo ENUM('vendedor', 'cajero', 'administrador') NOT NULL
-);
+    // SQL para crear tablas
+    $sql = <<<SQL
+    -- EMPLEADOS
+    CREATE TABLE empleados(
+        id VARCHAR(10) PRIMARY KEY,
+        nombres VARCHAR(50) NOT NULL,
+        apellidos VARCHAR(50) NOT NULL,
+        sexo ENUM('masculino', 'femenino') NOT NULL,
+        fecha_nacimiento DATE,
+        tipo_documento ENUM('DNI', 'CE', 'pasaporte'),
+        numero_documento VARCHAR(20) NOT NULL,
+        foto VARCHAR(255) NOT NULL,
+        direccion VARCHAR(50) NOT NULL,
+        telefono VARCHAR(9) CHECK (telefono REGEXP '^[0-9]{9}$'),
+        email VARCHAR(100) UNIQUE NOT NULL,
+        estado ENUM('activo', 'no activo') NOT NULL,
+        tipo ENUM('vendedor', 'cajero', 'administrador') NOT NULL
+    );
 
--- USUARIOS
-CREATE TABLE usuarios(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    empleado_id VARCHAR(10),
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    FOREIGN KEY (empleado_id) REFERENCES empleados(id)
-);
-
-
--- CLIENTES 
-CREATE TABLE clientes(
-    id VARCHAR(10) PRIMARY KEY,
-    nombres VARCHAR(50) NOT NULL,
-    apellidos VARCHAR(50) NOT NULL,
-    sexo ENUM('masculino', 'femenino') NOT NULL,
-    tipo_documento ENUM('DNI', 'CE', 'pasaporte'),
-    numero_documento VARCHAR(20) NOT NULL,
-    direccion VARCHAR(50) NOT NULL,
-    telefono VARCHAR(9) CHECK (telefono REGEXP '^[0-9]{9}$'),
-    email VARCHAR(100) UNIQUE NOT NULL
-);
+    -- USUARIOS
+    CREATE TABLE usuarios(
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        empleado_id VARCHAR(10),
+        username VARCHAR(50) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        FOREIGN KEY (empleado_id) REFERENCES empleados(id)
+    );
 
 
--- Crear la tabla proveedores
-CREATE TABLE proveedores (
-    id VARCHAR(10) PRIMARY KEY,   -- Identificador del proveedor, puedes usar un formato como 'P001'
-    razon_social VARCHAR(100) NOT NULL,  -- Razón social del proveedor
-    ruc VARCHAR(20) NOT NULL,       -- RUC del proveedor
-    direccion VARCHAR(100) NOT NULL,     -- Dirección del proveedor
-    telefono VARCHAR(9) CHECK (telefono REGEXP '^[0-9]{9}$'),  -- Teléfono del proveedor
-    email VARCHAR(100) UNIQUE NOT NULL, -- Email del proveedor
-    url VARCHAR(255)                 -- URL del proveedor (opcional)
-);
-
-CREATE TABLE categorias (
-    id VARCHAR(10) PRIMARY KEY,
-    nombre_categoria VARCHAR(50) NOT NULL,
-    descripcion TEXT
-);
-
-CREATE TABLE compras (
-    id VARCHAR(10) PRIMARY KEY,
-    tipo_comprobante ENUM('factura', 'boleta') NOT NULL,
-    nro_comprobante VARCHAR(20) NOT NULL,
-    fecha_emision DATE NOT NULL,
-    proveedor_id VARCHAR(10) NOT NULL,
-    FOREIGN KEY (proveedor_id) REFERENCES proveedores(id)
-);
+    -- CLIENTES 
+    CREATE TABLE clientes(
+        id VARCHAR(10) PRIMARY KEY,
+        nombres VARCHAR(50) NOT NULL,
+        apellidos VARCHAR(50) NOT NULL,
+        sexo ENUM('masculino', 'femenino') NOT NULL,
+        tipo_documento ENUM('DNI', 'CE', 'pasaporte'),
+        numero_documento VARCHAR(20) NOT NULL,
+        direccion VARCHAR(50) NOT NULL,
+        telefono VARCHAR(9) CHECK (telefono REGEXP '^[0-9]{9}$'),
+        email VARCHAR(100) UNIQUE NOT NULL
+    );
 
 
+    -- Crear la tabla proveedores
+    CREATE TABLE proveedores (
+        id VARCHAR(10) PRIMARY KEY,   -- Identificador del proveedor, puedes usar un formato como 'P001'
+        razon_social VARCHAR(100) NOT NULL,  -- Razón social del proveedor
+        ruc VARCHAR(20) NOT NULL,       -- RUC del proveedor
+        direccion VARCHAR(100) NOT NULL,     -- Dirección del proveedor
+        telefono VARCHAR(9) CHECK (telefono REGEXP '^[0-9]{9}$'),  -- Teléfono del proveedor
+        email VARCHAR(100) UNIQUE NOT NULL, -- Email del proveedor
+        url VARCHAR(255)                 -- URL del proveedor (opcional)
+    );
 
--- PRODUCTOS
-CREATE TABLE productos(
-    id VARCHAR(10) PRIMARY KEY,
-    descripcion VARCHAR(1000) NOT NULL,
-    foto VARCHAR(255) NOT NULL,
-    marca VARCHAR(20) NOT NULL, 
-    modelo VARCHAR(20) NOT NULL, 
-    stock_inicial INT NOT NULL,
-    stock_actual INT NOT NULL CHECK (stock_actual >= 0),
-    categoria_id VARCHAR(10),
-    proveedor_id VARCHAR(10),
-    precio INT NOT NULL,
-    compra_id VARCHAR(10),
-    FOREIGN KEY (categoria_id) REFERENCES categorias(id),
-    FOREIGN KEY (proveedor_id) REFERENCES proveedores(id),
-    FOREIGN KEY (compra_id) REFERENCES compras(id)
-);
+    CREATE TABLE categorias (
+        id VARCHAR(10) PRIMARY KEY,
+        nombre_categoria VARCHAR(50) NOT NULL,
+        descripcion TEXT
+    );
 
-
--- ORDEN DE VENTA
-CREATE TABLE orden_venta(
-    id VARCHAR(10) PRIMARY KEY,
-    empleado_id VARCHAR(10),
-    fecha DATE NOT NULL,
-    FOREIGN KEY (empleado_id) REFERENCES empleados(id)
-        ON DELETE SET NULL
-        ON UPDATE CASCADE
-);
+    CREATE TABLE compras (
+        id VARCHAR(10) PRIMARY KEY,
+        tipo_comprobante ENUM('factura', 'boleta') NOT NULL,
+        nro_comprobante VARCHAR(20) NOT NULL,
+        fecha_emision DATE NOT NULL,
+        proveedor_id VARCHAR(10) NOT NULL,
+        FOREIGN KEY (proveedor_id) REFERENCES proveedores(id)
+    );
 
 
--- DETALLE DE ORDEN DE VENTA 
-CREATE TABLE detalle_orden(
-    id VARCHAR(10) PRIMARY KEY,
-    id_orden VARCHAR(10),
-    id_producto VARCHAR(10),
-    cantidad INT NOT NULL,
-    precio_unitario INT NOT NULL,
-    FOREIGN KEY (id_orden) REFERENCES orden_venta(id),
-    FOREIGN KEY (id_producto) REFERENCES productos(id)
-);
+
+    -- PRODUCTOS
+    CREATE TABLE productos(
+        id VARCHAR(10) PRIMARY KEY,
+        descripcion VARCHAR(1000) NOT NULL,
+        foto VARCHAR(255) NOT NULL,
+        marca VARCHAR(20) NOT NULL, 
+        modelo VARCHAR(20) NOT NULL, 
+        stock_inicial INT NOT NULL,
+        stock_actual INT NOT NULL CHECK (stock_actual >= 0),
+        categoria_id VARCHAR(10),
+        proveedor_id VARCHAR(10),
+        precio INT NOT NULL,
+        compra_id VARCHAR(10),
+        FOREIGN KEY (categoria_id) REFERENCES categorias(id),
+        FOREIGN KEY (proveedor_id) REFERENCES proveedores(id),
+        FOREIGN KEY (compra_id) REFERENCES compras(id)
+    );
 
 
--- VENTAS
-CREATE TABLE ventas (
-    id VARCHAR(10) PRIMARY KEY,           -- Identificador único de la venta
-    tipo_comprobante ENUM('factura', 'boleta') NOT NULL,  -- Tipo de comprobante (factura o boleta)
-    nro_comprobante VARCHAR(20) NOT NULL, -- Número de comprobante
-    fecha_emision DATE NOT NULL,          -- Fecha de emisión
-    proveedor_id VARCHAR(10),             -- Proveedor asociado a la venta
-    cliente_id VARCHAR(10),
-    FOREIGN KEY (proveedor_id) REFERENCES proveedores(id),
-    FOREIGN KEY (cliente_id) REFERENCES clientes(id)
-);
+    -- ORDEN DE VENTA
+    CREATE TABLE orden_venta(
+        id VARCHAR(10) PRIMARY KEY,
+        empleado_id VARCHAR(10),
+        fecha DATE NOT NULL,
+        FOREIGN KEY (empleado_id) REFERENCES empleados(id)
+            ON DELETE SET NULL
+            ON UPDATE CASCADE
+    );
 
 
-CREATE TABLE detalle_venta (
-    id VARCHAR(10) PRIMARY KEY,          -- Identificador único del detalle
-    venta_id VARCHAR(10),                -- Identificador de la venta
-    producto_id VARCHAR(10),             -- Identificador del producto
-    cantidad INT NOT NULL,               -- Cantidad vendida
-    precio_unitario INT NOT NULL,        -- Precio unitario del producto
-    FOREIGN KEY (venta_id) REFERENCES ventas(id),
-    FOREIGN KEY (producto_id) REFERENCES productos(id)
-);
-SQL;
+    -- DETALLE DE ORDEN DE VENTA 
+    CREATE TABLE detalle_orden(
+        id VARCHAR(10) PRIMARY KEY,
+        id_orden VARCHAR(10),
+        id_producto VARCHAR(10),
+        cantidad INT NOT NULL,
+        precio_unitario INT NOT NULL,
+        FOREIGN KEY (id_orden) REFERENCES orden_venta(id),
+        FOREIGN KEY (id_producto) REFERENCES productos(id)
+    );
+
+
+    -- VENTAS
+    CREATE TABLE ventas (
+        id VARCHAR(10) PRIMARY KEY,           -- Identificador único de la venta
+        tipo_comprobante ENUM('factura', 'boleta') NOT NULL,  -- Tipo de comprobante (factura o boleta)
+        nro_comprobante VARCHAR(20) NOT NULL, -- Número de comprobante
+        fecha_emision DATE NOT NULL,          -- Fecha de emisión
+        proveedor_id VARCHAR(10),             -- Proveedor asociado a la venta
+        cliente_id VARCHAR(10),
+        FOREIGN KEY (proveedor_id) REFERENCES proveedores(id),
+        FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+    );
+
+
+    CREATE TABLE detalle_venta (
+        id VARCHAR(10) PRIMARY KEY,          -- Identificador único del detalle
+        venta_id VARCHAR(10),                -- Identificador de la venta
+        producto_id VARCHAR(10),             -- Identificador del producto
+        cantidad INT NOT NULL,               -- Cantidad vendida
+        precio_unitario INT NOT NULL,        -- Precio unitario del producto
+        FOREIGN KEY (venta_id) REFERENCES ventas(id),
+        FOREIGN KEY (producto_id) REFERENCES productos(id)
+    );
+    SQL;
 
 if ($conn->multi_query($sql) === TRUE) {
     echo "Tablas creadas exitosamente<br>";
@@ -248,4 +252,7 @@ if ($conn->multi_query($sql) === TRUE) {
 }
 
 $conn->close();
+}else{
+echo "La base de datos ya existe";
+}
 ?>
